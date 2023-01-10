@@ -57,9 +57,6 @@ public class ClientWorker {
             }
         };
         executor.submit(r);
-//        Thread thread = new Thread(r);
-//        thread.setDaemon(true);
-//        thread.start();
     }
 
     private void createWriter() throws IOException {

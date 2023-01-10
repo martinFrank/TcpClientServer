@@ -60,9 +60,6 @@ public class TcpServer {
     public void start() {
         Runnable r = createSocketListener();
         executor.submit(r);
-//        Thread t = new Thread(r);
-//        t.setDaemon(true);
-//        t.start();
     }
 
 
