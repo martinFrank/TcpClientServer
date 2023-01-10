@@ -6,5 +6,7 @@ public interface ServerMessageReceiver {
 
     void notifyDisconnect(ClientWorker worker);
 
+    void notifyUp(String serverAddress);
 
+    void notifyConnect(ClientWorker worker);
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 public class ClientWorker {
 
@@ -14,10 +15,12 @@ public class ClientWorker {
     private BufferedWriter br;
     private static long workerCount = 0;
     private final long workerId;
+    private final ExecutorService executor;
 
-    public ClientWorker(Socket socket, TcpServer tcpServer) {
+    public ClientWorker(Socket socket, TcpServer tcpServer, ExecutorService executor) {
         this.socket = socket;
         this.tcpServer = tcpServer;
+        this.executor = executor;
         workerId = getNextWorkerId();
     }
 
@@ -53,9 +56,10 @@ public class ClientWorker {
                 //we are done here, disconnected!
             }
         };
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.start();
+        executor.submit(r);
+//        Thread thread = new Thread(r);
+//        thread.setDaemon(true);
+//        thread.start();
     }
 
     private void createWriter() throws IOException {
@@ -81,5 +85,13 @@ public class ClientWorker {
                 "id="+workerId+
                 ", "+ socket.getInetAddress().toString()+
                 "}";
+    }
+
+    public void close() {
+        try {
+            br.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

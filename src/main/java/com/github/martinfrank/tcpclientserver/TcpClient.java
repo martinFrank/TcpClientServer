@@ -5,14 +5,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class TcpClient {
 
     private final String host;
     private final int port;
     private final ClientMessageReceiver clientMessageReceiver;
+    private final ExecutorService executor;
     private BufferedWriter br;
     private final byte[] buffer = new byte[256];
+    private Socket socket;
 
 
 
@@ -20,20 +25,33 @@ public class TcpClient {
         this.host = host;
         this.port = port;
         this.clientMessageReceiver = clientMessageReceiver;
+        executor = Executors.newSingleThreadExecutor();
+    }
+
+    public TcpClient(String host, int port, ClientMessageReceiver clientMessageReceiver, ExecutorService executor) {
+        this.host = host;
+        this.port = port;
+        this.clientMessageReceiver = clientMessageReceiver;
+        this.executor = executor;
     }
 
     public void start() {
         try {
-            Socket socket = new Socket(host, port);
-            createWriter(socket);
-            startReader(socket);
+            socket = new Socket(host, port);
+            createWriter();
+            startReader();
         }catch (IOException e){
             clientMessageReceiver.notifyDisconnect();
         }
     }
 
-    private void startReader(Socket socket) {
-        Runnable r = () -> {
+    private void startReader() {
+        Runnable r = createReaderRunnable();
+        executor.submit(r);
+    }
+
+    private Runnable createReaderRunnable() {
+        return () -> {
             try (InputStream in = socket.getInputStream()){
                 readContinuously(in);
             } catch (IOException e) {
@@ -41,9 +59,6 @@ public class TcpClient {
                 clientMessageReceiver.notifyDisconnect();
             }
         };
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.start();
     }
 
     private void readContinuously(InputStream in) throws IOException {
@@ -52,9 +67,10 @@ public class TcpClient {
             String output = new String(buffer, 0, read);
             clientMessageReceiver.receive(output);
         }
+        clientMessageReceiver.notifyDisconnect();
     }
 
-    private void createWriter(Socket socket) throws IOException {
+    private void createWriter() throws IOException {
         br = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
     }
 
@@ -66,5 +82,30 @@ public class TcpClient {
 //            throw new RuntimeException(e);
             clientMessageReceiver.notifyDisconnect();
         }
+    }
+
+
+    public void close() {
+        try {
+            socket.close();
+        } catch (Exception e) {
+            //well, we're done here
+        }
+        executor.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!executor.awaitTermination(3, TimeUnit.SECONDS))
+                    System.err.println("Pool did not terminate");
+            }
+        } catch (InterruptedException ie) {
+            // (Re-)Cancel if current thread also interrupted
+            executor.shutdownNow();
+            // Preserve interrupt status
+            Thread.currentThread().interrupt();
+        }
+
     }
 }

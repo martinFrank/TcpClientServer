@@ -4,8 +4,10 @@ import com.github.martinfrank.tcpclientserver.ClientMessageReceiver;
 import com.github.martinfrank.tcpclientserver.TcpClient;
 
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class ClientApp {
+public class ClientAppWithExecutor {
 
     public static void main(String[] args){
         ClientMessageReceiver serverMessageReceiver = new ClientMessageReceiver() {
@@ -20,7 +22,8 @@ public class ClientApp {
             }
         };
 
-        TcpClient client = new TcpClient("192.168.0.65", 4711, serverMessageReceiver);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        TcpClient client = new TcpClient("192.168.0.65", 4711, serverMessageReceiver, executor);
         client.start();
 
         Scanner scanner = new Scanner(System.in);
@@ -29,6 +32,5 @@ public class ClientApp {
             message = scanner.nextLine();
             client.send(message);
         }
-        client.close();
     }
 }
