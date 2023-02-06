@@ -7,10 +7,12 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 
+import static com.github.martinfrank.tcpclientserver.BufferSetting.BUFFER_SIZE;
+
 public class ClientWorker {
 
     private final Socket socket;
-    private final byte[] buffer = new byte[256];
+    private final byte[] buffer = new byte[BUFFER_SIZE];
     private final TcpServer tcpServer;
     private BufferedWriter br;
     private static long workerCount = 0;

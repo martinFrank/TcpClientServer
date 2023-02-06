@@ -9,6 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.martinfrank.tcpclientserver.BufferSetting.BUFFER_SIZE;
+
 public class TcpClient {
 
     private final String host;
@@ -16,7 +18,7 @@ public class TcpClient {
     private final ClientMessageReceiver clientMessageReceiver;
     private final ExecutorService executor;
     private BufferedWriter br;
-    private final byte[] buffer = new byte[256];
+    private final byte[] buffer = new byte[BUFFER_SIZE];
     private Socket socket;
 
 
