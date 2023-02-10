@@ -20,7 +20,7 @@ public class ClientApp {
             }
         };
 
-        TcpClient client = new TcpClient("192.168.0.65", 4711, serverMessageReceiver);
+        TcpClient client = new TcpClient("192.168.0.65", 8100, serverMessageReceiver);
         client.start();
 
         Scanner scanner = new Scanner(System.in);

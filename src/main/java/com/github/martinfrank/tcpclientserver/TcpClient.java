@@ -1,8 +1,10 @@
 package com.github.martinfrank.tcpclientserver;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -64,10 +66,13 @@ public class TcpClient {
     }
 
     private void readContinuously(InputStream in) throws IOException {
-        int read;
-        while ((read = in.read(buffer)) != -1) {
-            String output = new String(buffer, 0, read);
-            clientMessageReceiver.receive(output);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in), BUFFER_SIZE);
+        while(true){
+            String line = reader.readLine();
+            if(line == null){
+                break;
+            }
+            clientMessageReceiver.receive(line);
         }
         clientMessageReceiver.notifyDisconnect();
     }
@@ -79,6 +84,7 @@ public class TcpClient {
     public void send(String message){
         try {
             br.write(message);
+            br.newLine();
             br.flush();
         } catch (IOException e) {
 //            throw new RuntimeException(e);
