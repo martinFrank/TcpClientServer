@@ -15,12 +15,13 @@ public class ClientApp {
             }
 
             @Override
-            public void notifyDisconnect() {
-                System.out.println("disconnect");
+            public void notifyDisconnect(Exception e) {
+                System.out.println("disconnect: "+e);
             }
         };
 
-        TcpClient client = new TcpClient("192.168.0.65", 8100, serverMessageReceiver);
+//        TcpClient client = new TcpClient("192.168.0.65", 8100, serverMessageReceiver);
+        TcpClient client = new TcpClient("elitegames.chickenkiller.com", 8100, serverMessageReceiver);
         client.start();
 
         Scanner scanner = new Scanner(System.in);

@@ -4,5 +4,5 @@ public interface ClientMessageReceiver {
 
     void receive(String message) ;
 
-    void notifyDisconnect() ;
+    void notifyDisconnect(Exception e) ;
 }

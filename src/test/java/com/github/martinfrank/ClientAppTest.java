@@ -15,8 +15,8 @@ public class ClientAppTest {
             }
 
             @Override
-            public void notifyDisconnect() {
-                System.out.println("disconnect");
+            public void notifyDisconnect(Exception e) {
+                System.out.println("disconnect: "+e);
             }
         };
 

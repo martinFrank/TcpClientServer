@@ -2,10 +2,12 @@ package com.github.martinfrank.tcpclientserver;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,7 +47,7 @@ public class TcpClient {
             createWriter();
             startReader();
         }catch (IOException e){
-            clientMessageReceiver.notifyDisconnect();
+            clientMessageReceiver.notifyDisconnect(e);
         }
     }
 
@@ -60,7 +62,7 @@ public class TcpClient {
                 readContinuously(in);
             } catch (IOException e) {
                 //throw new RuntimeException(e);
-                clientMessageReceiver.notifyDisconnect();
+                clientMessageReceiver.notifyDisconnect(e);
             }
         };
     }
@@ -74,7 +76,7 @@ public class TcpClient {
             }
             clientMessageReceiver.receive(line);
         }
-        clientMessageReceiver.notifyDisconnect();
+        clientMessageReceiver.notifyDisconnect(new EOFException("end of server stream reached"));
     }
 
     private void createWriter() throws IOException {
@@ -88,7 +90,7 @@ public class TcpClient {
             br.flush();
         } catch (IOException e) {
 //            throw new RuntimeException(e);
-            clientMessageReceiver.notifyDisconnect();
+            clientMessageReceiver.notifyDisconnect(e);
         }
     }
 
