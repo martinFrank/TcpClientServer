@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,7 +21,6 @@ public class TcpClient {
     private final ClientMessageReceiver clientMessageReceiver;
     private final ExecutorService executor;
     private BufferedWriter br;
-    private final byte[] buffer = new byte[BUFFER_SIZE];
     private Socket socket;
 
 
@@ -61,7 +59,6 @@ public class TcpClient {
             try (InputStream in = socket.getInputStream()){
                 readContinuously(in);
             } catch (IOException e) {
-                //throw new RuntimeException(e);
                 clientMessageReceiver.notifyDisconnect(e);
             }
         };
@@ -89,7 +86,6 @@ public class TcpClient {
             br.newLine();
             br.flush();
         } catch (IOException e) {
-//            throw new RuntimeException(e);
             clientMessageReceiver.notifyDisconnect(e);
         }
     }
@@ -108,7 +104,7 @@ public class TcpClient {
                 executor.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
                 if (!executor.awaitTermination(3, TimeUnit.SECONDS))
-                    System.err.println("Pool did not terminate");
+                    System.err.println("Pool did not terminate");//to prevent further dependencies we write System.err
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted

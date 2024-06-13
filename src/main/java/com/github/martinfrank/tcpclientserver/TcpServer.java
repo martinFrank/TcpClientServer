@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -30,8 +31,9 @@ public class TcpServer {
             if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
                 executor.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!executor.awaitTermination(3, TimeUnit.SECONDS))
-                    System.err.println("Pool did not terminate");
+                if (!executor.awaitTermination(3, TimeUnit.SECONDS)){
+                    System.err.println("Pool did not terminate");//to prevent further dependencies we write System.err
+                }
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
@@ -67,8 +69,8 @@ public class TcpServer {
         return () -> {
             try {
                 socket = new ServerSocket(port);
-                serverMessageReceiver.notifyUp("" + InetAddress.getLocalHost().getHostAddress());
-                while (true) {//this is intended
+                serverMessageReceiver.notifyUp(InetAddress.getLocalHost().getHostAddress());
+                while (true) {//this is intended - ignore sonar warnings here
                     ClientWorker worker = new ClientWorker(socket.accept(), TcpServer.this, executor);
                     workers.add(worker);
                     worker.start();
@@ -76,7 +78,6 @@ public class TcpServer {
                 }
             } catch (IOException e) {
                 //will silently be terminated then!
-//                throw new RuntimeException(e);
             }
         };
     }
@@ -90,5 +91,8 @@ public class TcpServer {
         serverMessageReceiver.notifyDisconnect(worker);
     }
 
-
+    public void send(String message, long workerId) {
+        Optional<ClientWorker> worker = workers.stream().filter(w -> w.getId() == workerId).findAny();
+        worker.ifPresent(clientWorker -> clientWorker.send(message));
+    }
 }
