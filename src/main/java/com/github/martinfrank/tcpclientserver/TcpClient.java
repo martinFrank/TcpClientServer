@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.martinfrank.tcpclientserver.BufferSetting.BUFFER_SIZE;
 
@@ -97,21 +96,7 @@ public class TcpClient {
         } catch (Exception e) {
             //well, we're done here
         }
-        executor.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                executor.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if (!executor.awaitTermination(3, TimeUnit.SECONDS))
-                    System.err.println("Pool did not terminate");//to prevent further dependencies we write System.err
-            }
-        } catch (InterruptedException ie) {
-            // (Re-)Cancel if current thread also interrupted
-            executor.shutdownNow();
-            // Preserve interrupt status
-            Thread.currentThread().interrupt();
-        }
+        ExecutorCloser.close(executor);
 
     }
 }
